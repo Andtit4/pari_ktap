@@ -1,0 +1,56 @@
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import authRoutes from './routes/auth.js';
+import matchRoutes from './routes/matches.js';
+import betRoutes from './routes/bets.js';
+
+dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/bets', betRoutes);
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+  console.log('Un utilisateur connecté');
+
+  socket.on('joinMatch', (matchId) => {
+    socket.join(`match:${matchId}`);
+  });
+
+  socket.on('placeBet', (data) => {
+    io.to(`match:${data.matchId}`).emit('betPlaced', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Un utilisateur déconnecté');
+  });
+});
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/oddsx')
+  .then(() => console.log('Connecté à MongoDB'))
+  .catch(err => console.error('Erreur de connexion MongoDB:', err));
+
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
+}); 
