@@ -8,6 +8,7 @@
     "build": "vue-cli-service build",
     "preview": "vite preview",
     "server": "node server/index.js",
+    "start": "node server/index.js",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "serve": "vue-cli-service serve",
     "lint": "vue-cli-service lint"
