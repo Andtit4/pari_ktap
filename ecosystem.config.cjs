@@ -4,10 +4,10 @@ module.exports = {
       name: 'oddsx-frontend',
       cwd: './',
       script: 'node_modules/.bin/vite',
-      args: '--port 9991',
+      args: '--port 9990',
       env: {
         NODE_ENV: 'production',
-        PORT: 9991
+        PORT: 9990
       },
       watch: false,
       ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts'],
