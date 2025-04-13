@@ -54,7 +54,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/oddsx')
   .then(() => console.log('Connecté à MongoDB'))
   .catch(err => console.error('Erreur de connexion MongoDB:', err));
 
-const PORT = process.env.PORT || 9991;
+const PORT = process.env.PORT || 9001;
 const HOST = '0.0.0.0';
 app.set('trust proxy', true);
 httpServer.listen(PORT, HOST, () => {

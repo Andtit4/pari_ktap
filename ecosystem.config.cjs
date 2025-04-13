@@ -4,10 +4,10 @@ module.exports = {
       name: 'oddsx-frontend',
       cwd: './',
       script: 'node_modules/.bin/vite',
-      args: '--port 9990',
+      args: '--port 9000',
       env: {
         NODE_ENV: 'production',
-        PORT: 9990
+        PORT: 9000
       },
       watch: false,
       ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts'],
@@ -21,9 +21,9 @@ module.exports = {
       script: 'server/index.js',
       env: {
         NODE_ENV: 'production',
-        PORT: 9991,
-        VUE_APP_API_URL: 'http://localhost:9991/api',
-        CLIENT_URL: 'http://localhost:9991'
+        PORT: 9001,
+        VUE_APP_API_URL: 'http://localhost:9001/api',
+        CLIENT_URL: 'http://localhost:9000'
       },
       watch: false,
       ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts'],
