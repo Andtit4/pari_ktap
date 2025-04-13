@@ -35,7 +35,7 @@
                 :key="match._id"
                 :value="match._id"
               >
-                {{ match.team1 }} vs {{ match.team2 }}
+                {{ match.teamA.name }} vs {{ match.teamB.name }}
               </option>
             </select>
           </div>
@@ -95,7 +95,7 @@
                     {{ bet.match.sport }}
                   </span>
                   <span class="teams">
-                    {{ bet.match.team1 }} vs {{ bet.match.team2 }}
+                    {{ bet.match.teamA.name }} vs {{ bet.match.teamB.name }}
                   </span>
                 </div>
                 <span class="status" :class="bet.status">
@@ -195,8 +195,8 @@ export default {
       return props.bets.filter(bet => {
         const matchesSearch = 
           bet.user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          bet.match.team1.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          bet.match.team2.toLowerCase().includes(searchQuery.value.toLowerCase());
+          bet.match.teamA.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          bet.match.teamB.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
         const matchesStatus = !statusFilter.value || bet.status === statusFilter.value;
         const matchesMatch = !matchFilter.value || bet.match._id === matchFilter.value;
@@ -239,8 +239,8 @@ export default {
 
     const getChoiceLabel = (choice) => {
       const labels = {
-        team1: 'Équipe 1',
-        team2: 'Équipe 2',
+        teamA: 'Équipe A',
+        teamB: 'Équipe B',
         draw: 'Match nul'
       };
       return labels[choice] || choice;
@@ -632,3 +632,5 @@ export default {
   }
 }
 </style> 
+ 
+ 

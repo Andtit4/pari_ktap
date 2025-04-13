@@ -43,14 +43,25 @@ export default {
     async fetchUsers({ commit }) {
       try {
         commit('SET_LOADING', true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token d\'authentification manquant');
+        }
+        
         const response = await axios.get(`${API_URL}/admin/users`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${token}`
           }
         });
-        commit('SET_USERS', response.data);
+        
+        if (response.data) {
+          commit('SET_USERS', response.data);
+        } else {
+          throw new Error('Aucune donnée reçue du serveur');
+        }
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Erreur lors de la récupération des utilisateurs');
+        console.error('Erreur lors de la récupération des utilisateurs:', error);
+        commit('SET_ERROR', error.response?.data?.message || error.message || 'Erreur lors de la récupération des utilisateurs');
         throw error;
       } finally {
         commit('SET_LOADING', false);
@@ -60,15 +71,32 @@ export default {
     async fetchTransactions({ commit }) {
       try {
         commit('SET_LOADING', true);
-        const response = await axios.get(`${API_URL}/admin/transactions`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        commit('SET_TRANSACTIONS', response.data);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token d\'authentification manquant');
+        }
+
+        const [depositsResponse, withdrawalsResponse] = await Promise.all([
+          axios.get(`${API_URL}/transactions/admin/deposits`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }),
+          axios.get(`${API_URL}/transactions/admin/withdrawals`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+        ]);
+        
+        const transactions = [
+          ...depositsResponse.data.map(d => ({ ...d, type: 'deposit' })),
+          ...withdrawalsResponse.data.map(w => ({ ...w, type: 'withdrawal' }))
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        commit('SET_TRANSACTIONS', transactions);
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Erreur lors de la récupération des transactions');
-        throw error;
       } finally {
         commit('SET_LOADING', false);
       }
@@ -137,12 +165,12 @@ export default {
       }
     },
     
-    async approveTransaction({ commit }, transactionId) {
+    async approveTransaction({ commit }, { id, type }) {
       try {
         commit('SET_LOADING', true);
-        const response = await axios.post(
-          `${API_URL}/admin/transactions/${transactionId}/approve`,
-          {},
+        const response = await axios.put(
+          `${API_URL}/transactions/admin/${type}s/${id}`,
+          { status: 'approved' },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -158,12 +186,12 @@ export default {
       }
     },
     
-    async rejectTransaction({ commit }, transactionId) {
+    async rejectTransaction({ commit }, { id, type, reason }) {
       try {
         commit('SET_LOADING', true);
-        const response = await axios.post(
-          `${API_URL}/admin/transactions/${transactionId}/reject`,
-          {},
+        const response = await axios.put(
+          `${API_URL}/transactions/admin/${type}s/${id}`,
+          { status: 'rejected', reason },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -203,3 +231,5 @@ export default {
       .reduce((total, transaction) => total + transaction.amount, 0)
   }
 }; 
+ 
+ 

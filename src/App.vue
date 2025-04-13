@@ -15,7 +15,11 @@
       <div class="modals-container">
         <LoginModal v-if="activeModal === 'login'" @close="closeModal" />
         <RegisterModal v-if="activeModal === 'register'" @close="closeModal" />
-        <DepositModal v-if="activeModal === 'deposit'" @close="closeModal" />
+        <DepositModal 
+          v-if="activeModal === 'deposit'" 
+          @close="closeModal"
+          @submit="handleDeposit"
+        />
         <WithdrawModal v-if="activeModal === 'withdraw'" @close="closeModal" />
       </div>
     </Teleport>
@@ -23,25 +27,36 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, provide } from 'vue';
-import { useStore } from 'vuex';
+import { ref, provide, onMounted } from 'vue';
+import { Store, useStore } from 'vuex';
 import Navigation from './components/Navigation.vue';
 import LoginModal from './components/LoginModal.vue';
 import RegisterModal from './components/RegisterModal.vue';
 import DepositModal from './components/DepositModal.vue';
 import WithdrawModal from './components/WithdrawModal.vue';
 
-const store = useStore();
+interface DepositData {
+  amount: number;
+  currency: string;
+}
+
+const store: Store<any> = useStore();
 
 // État des modals
-const activeModal = ref(null);
+const activeModal = ref<string | null>(null);
 
-// Computed properties
-const isAuthenticated = computed(() => store.state.auth.isAuthenticated);
-const userBalance = computed(() => store.state.auth.user?.ktapBalance || 0);
+// Chargement initial des données
+onMounted(async () => {
+  try {
+    await store.dispatch('matches/fetchMatches');
+    await store.dispatch('matches/fetchLiveMatches');
+  } catch (error) {
+    console.error('Erreur lors du chargement des matchs:', error);
+  }
+});
 
 // Méthodes
-const openModal = (modalName) => {
+const openModal = (modalName: string) => {
   activeModal.value = modalName;
 };
 
@@ -49,8 +64,13 @@ const closeModal = () => {
   activeModal.value = null;
 };
 
-const logout = async () => {
-  await store.dispatch('auth/logout');
+const handleDeposit = async (depositData: DepositData) => {
+  try {
+    await store.dispatch('transactions/createDeposit', depositData);
+    closeModal();
+  } catch (error) {
+    console.error('Erreur lors du dépôt:', error);
+  }
 };
 
 // Fournir les fonctions de contrôle des modaux aux composants enfants

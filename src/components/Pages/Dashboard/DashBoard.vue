@@ -446,3 +446,183 @@ import Profile from "./Profile.vue";
 </template>
 
 <style scoped></style>
+
+                            <tr>
+                              <th class="text-nowrap">Transaction ID</th>
+                              <th class="text-nowrap">Payment Methods</th>
+                              <th class="text-nowrap">Amount</th>
+                              <th class="text-nowrap">Status</th>
+                            </tr>
+                            <tr>
+                              <td>2PQ8B4KYMJ</td>
+                              <td>Bank / CC</td>
+                              <td>5,591 USD</td>
+                              <td class="r1-color fw-normal cpoint">Cancel</td>
+                            </tr>
+                            <tr>
+                              <td>4TQRW5WXF4</td>
+                              <td>Credit Card</td>
+                              <td>5,591 USD</td>
+                              <td class="g1-color fw-normal cpoint">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>XR97K86R7Y</td>
+                              <td>tether TRC20</td>
+                              <td>5,591 USD</td>
+                              <td class="r1-color fw-normal cpoint">Cancel</td>
+                            </tr>
+                            <tr>
+                              <td>VEJP8A5J87</td>
+                              <td>Bank</td>
+                              <td>5,591 USD</td>
+                              <td class="g1-color fw-normal cpoint">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>JKNFWEJ123</td>
+                              <td>Credit Card</td>
+                              <td>5,591 USD</td>
+                              <td class="r1-color fw-normal cpoint">Cancel</td>
+                            </tr>
+                            <tr>
+                              <td>NC8S4QJ4K2</td>
+                              <td>tether TRC20</td>
+                              <td>5,591 USD</td>
+                              <td class="r1-color fw-normal cpoint">Cancel</td>
+                            </tr>
+                            <tr>
+                              <td>DGPSN7SRM4</td>
+                              <td>TRON</td>
+                              <td>5,591 USD</td>
+                              <td class="g1-color fw-normal cpoint">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>ZT3FA5D8N7</td>
+                              <td>Ethereum</td>
+                              <td>5,591 USD</td>
+                              <td class="g1-color fw-normal cpoint">
+                                Complete
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </TabPanel>
+                    <TabPanel>
+                      <div class="pay_method__tabletwo">
+                        <div
+                          class="pay_method__table-scrollbar overflow-x-auto"
+                        >
+                          <table class="w-100 text-center p2-bg">
+                            <tr>
+                              <th class="text-nowrap">Transaction ID</th>
+                              <th class="text-nowrap">Date</th>
+                              <th class="text-nowrap">Transaction type</th>
+                              <th class="text-nowrap">Amount/Balance</th>
+                              <th class="text-nowrap">Status</th>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">2PQ8B4KYMJ</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">4TQRW5WXF4</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">4TQRW5WXF4</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">VEJP8A5J87</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">JKNFWEJ123</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">NC8S4QJ4K2</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">DGPSN7SRM4</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-nowrap">ZT3FA5D8N7</td>
+                              <td class="text-nowrap">27.12.2023, 11:31</td>
+                              <td class="text-nowrap">5,591 USD</td>
+                              <td class="text-nowrap">300.00/300.00</td>
+                              <td class="g1-color fw-normal cpoint text-nowrap">
+                                Complete
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </TabPanel>
+                    <TabPanel>
+                      <Profile />
+                    </TabPanel>
+                    <TabPanel>
+                      <Settings />
+                    </TabPanel>
+                    <TabPanel>
+                      <Notifications />
+                    </TabPanel>
+                    <TabPanel>
+                      <Notifications />
+                    </TabPanel>
+                  </TabPanels>
+                </div>
+              </div>
+            </TabGroup>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped></style>

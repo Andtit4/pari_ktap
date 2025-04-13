@@ -119,22 +119,27 @@ export default {
       }
     },
     
-    async updateMatchScore({ commit, state }, { matchId, teamAScore, teamBScore }) {
+    async updateMatchScore({ commit }, { matchId, teamAScore, teamBScore }) {
       try {
         commit('SET_LOADING', true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token d\'authentification manquant');
+        }
+        
         const response = await axios.patch(
           `${API_URL}/matches/${matchId}/score`,
           { teamAScore, teamBScore },
           {
             headers: {
-              Authorization: `Bearer ${state.auth?.token}`
+              Authorization: `Bearer ${token}`
             }
           }
         );
         commit('UPDATE_MATCH', response.data);
-        return response.data;
       } catch (error) {
-        throw error.response?.data?.error || 'Erreur lors de la mise à jour du score';
+        commit('SET_ERROR', error.response?.data?.message || 'Erreur lors de la mise à jour du score');
+        throw error;
       } finally {
         commit('SET_LOADING', false);
       }
@@ -241,6 +246,29 @@ export default {
       } finally {
         commit('SET_LOADING', false);
       }
+    },
+
+    async startMatch({ commit, state }, matchId) {
+      try {
+        commit('SET_LOADING', true);
+        const token = localStorage.getItem('token');
+        const response = await axios.patch(
+          `${API_URL}/matches/admin/matches/${matchId}/start`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        commit('UPDATE_MATCH', response.data);
+        return response.data;
+      } catch (error) {
+        commit('SET_ERROR', error.response?.data?.message || 'Erreur lors du démarrage du match');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
+      }
     }
   },
   
@@ -266,3 +294,5 @@ export default {
     }
   }
 }; 
+ 
+ 

@@ -61,20 +61,20 @@
 
             <div class="match-info">
               <div class="teams">
-                <span class="team">{{ bet.match.teamA.name }}</span>
+                <span class="team">{{ bet.match?.teamA?.name || 'Équipe A' }}</span>
                 <span class="vs">VS</span>
-                <span class="team">{{ bet.match.teamB.name }}</span>
+                <span class="team">{{ bet.match?.teamB?.name || 'Équipe B' }}</span>
               </div>
-              <div class="scores" v-if="bet.match.status === 'finished'">
-                <span class="score">{{ bet.match.teamA.score }}</span>
-                <span class="score">{{ bet.match.teamB.score }}</span>
+              <div class="scores" v-if="bet.match?.status === 'finished'">
+                <span class="score">{{ bet.match?.teamA?.score || 0 }}</span>
+                <span class="score">{{ bet.match?.teamB?.score || 0 }}</span>
               </div>
             </div>
 
             <div class="bet-details">
               <div class="detail-item">
                 <span class="label">Votre choix</span>
-                <span class="value">{{ getTeamName(bet.betType) }}</span>
+                <span class="value">{{ getTeamName(bet.betType, bet.match) }}</span>
               </div>
               <div class="detail-item">
                 <span class="label">Montant</span>
@@ -149,8 +149,15 @@ const getStatusText = (status) => {
   return texts[status] || status;
 };
 
-const getTeamName = (betType) => {
-  return betType === 'teamA' ? 'Équipe A' : 'Équipe B';
+const getTeamName = (betType, match) => {
+  if (betType === 'teamA') {
+    return match?.teamA?.name || 'Équipe A';
+  } else if (betType === 'teamB') {
+    return match?.teamB?.name || 'Équipe B';
+  } else if (betType === 'draw') {
+    return 'Match nul';
+  }
+  return betType;
 };
 
 // Cycle de vie
@@ -289,3 +296,5 @@ onMounted(async () => {
   color: #6c757d;
 }
 </style> 
+ 
+ 

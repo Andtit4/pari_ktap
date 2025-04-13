@@ -11,9 +11,9 @@
       <div class="modal-body">
         <div class="match-info">
           <div class="teams">
-            <span class="team">{{ match.homeTeam }}</span>
+            <span class="team">{{ match.teamA.name }}</span>
             <span class="vs">VS</span>
-            <span class="team">{{ match.awayTeam }}</span>
+            <span class="team">{{ match.teamB.name }}</span>
           </div>
           <div class="time">
             <i class="far fa-clock"></i>
@@ -153,9 +153,9 @@ export default {
 
     const getOddTypeLabel = (type) => {
       const labels = {
-        home: 'Domicile',
+        teamA: 'Équipe A',
         draw: 'Match nul',
-        away: 'Extérieur'
+        teamB: 'Équipe B'
       };
       return labels[type] || type;
     };
@@ -440,3 +440,5 @@ export default {
   }
 }
 </style> 
+ 
+ 

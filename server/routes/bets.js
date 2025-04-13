@@ -33,7 +33,7 @@ router.post('/', auth, async (req, res) => {
       match: matchId,
       amount,
       betType,
-      potentialWinnings: amount * 2 // Double de la mise
+      potentialWinnings: amount * match.odds[betType]
     });
     
     // Mettre à jour le solde de l'utilisateur
@@ -59,7 +59,10 @@ router.post('/', auth, async (req, res) => {
 router.get('/user', auth, async (req, res) => {
   try {
     const bets = await Bet.find({ user: req.user._id })
-      .populate('match')
+      .populate({
+        path: 'match',
+        select: 'teamA teamB status startTime odds winner'
+      })
       .sort({ placedAt: -1 });
     
     res.json(bets);
@@ -93,37 +96,74 @@ router.post('/settle/:matchId', auth, async (req, res) => {
       return res.status(400).json({ error: 'Le match n\'est pas terminé.' });
     }
     
+    // Déterminer le gagnant en fonction des scores
+    let winner;
+    if (match.teamA.score > match.teamB.score) {
+      winner = 'teamA';
+    } else if (match.teamB.score > match.teamA.score) {
+      winner = 'teamB';
+    } else {
+      winner = 'draw';
+    }
+    
+    // Mettre à jour le gagnant du match
+    match.winner = winner;
+    await match.save();
+    
+    // Récupérer tous les paris en attente pour ce match
     const bets = await Bet.find({ 
       match: req.params.matchId,
       status: 'pending'
-    });
+    }).populate('user');
     
+    // Trouver l'administrateur pour recevoir les pertes
+    const admin = await User.findOne({ isAdmin: true });
+    if (!admin) {
+      return res.status(500).json({ error: 'Administrateur non trouvé.' });
+    }
+    
+    // Traiter chaque pari
     for (const bet of bets) {
-      const user = await User.findById(bet.user);
+      const user = bet.user;
       
-      if (bet.betType === match.winner) {
+      if (bet.betType === winner) {
         // Pari gagné
         bet.status = 'won';
         bet.actualWinnings = bet.potentialWinnings;
+        
+        // Ajouter les gains au compte de l'utilisateur
         user.ktapBalance += bet.actualWinnings;
       } else {
         // Pari perdu
         bet.status = 'lost';
         bet.actualWinnings = 0;
+        
+        // Ajouter les pertes au compte de l'administrateur
+        admin.ktapBalance += bet.amount;
       }
       
       bet.settledAt = new Date();
       
+      // Sauvegarder les modifications
       await Promise.all([
         bet.save(),
         user.save()
       ]);
     }
     
-    res.json({ message: 'Paris réglés avec succès.' });
+    // Sauvegarder le solde mis à jour de l'administrateur
+    await admin.save();
+    
+    res.json({ 
+      message: 'Paris réglés avec succès.',
+      winner: winner,
+      settledBets: bets.length
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 export default router; 
+ 
+ 

@@ -56,29 +56,27 @@ router.put('/users/:userId', async (req, res) => {
 // Approuver un dépôt
 router.post('/deposits/:depositId/approve', async (req, res) => {
   try {
-    const { ktapAmount } = req.body;
     const deposit = await PendingDeposit.findById(req.params.depositId)
       .populate('user');
-
+    
     if (!deposit) {
       return res.status(404).json({ message: 'Dépôt non trouvé' });
     }
-
+    
     if (deposit.status !== 'pending') {
       return res.status(400).json({ message: 'Ce dépôt a déjà été traité' });
     }
-
-    // Mettre à jour le solde de l'utilisateur
-    deposit.user.ktapBalance += ktapAmount;
-    await deposit.user.save();
-
-    // Marquer le dépôt comme approuvé
+    
+    // Mettre à jour le statut du dépôt
     deposit.status = 'approved';
-    deposit.ktapAmount = ktapAmount;
-    deposit.processedAt = new Date();
     await deposit.save();
-
-    res.json({ message: 'Dépôt approuvé avec succès' });
+    
+    // Créditer le compte de l'utilisateur
+    const user = deposit.user;
+    user.ktapBalance += deposit.amount;
+    await user.save();
+    
+    res.json({ message: 'Dépôt approuvé avec succès', deposit });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
@@ -88,20 +86,19 @@ router.post('/deposits/:depositId/approve', async (req, res) => {
 router.post('/deposits/:depositId/reject', async (req, res) => {
   try {
     const deposit = await PendingDeposit.findById(req.params.depositId);
-
+    
     if (!deposit) {
       return res.status(404).json({ message: 'Dépôt non trouvé' });
     }
-
+    
     if (deposit.status !== 'pending') {
       return res.status(400).json({ message: 'Ce dépôt a déjà été traité' });
     }
-
+    
     deposit.status = 'rejected';
-    deposit.processedAt = new Date();
     await deposit.save();
-
-    res.json({ message: 'Dépôt rejeté avec succès' });
+    
+    res.json({ message: 'Dépôt rejeté avec succès', deposit });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
   }

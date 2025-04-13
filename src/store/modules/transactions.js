@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const state = {
   deposits: [],
@@ -71,19 +71,41 @@ const actions = {
     }
   },
 
-  async createDeposit({ commit }, amount) {
+  async createDeposit({ commit }, { amount, proofOfPayment }) {
     try {
       commit('SET_LOADING', true);
+      commit('SET_ERROR', null);
+
+      // Validation des données
+      if (!amount || amount <= 0) {
+        throw new Error('Le montant doit être supérieur à 0');
+      }
+
+      if (!proofOfPayment) {
+        throw new Error('La preuve de paiement est requise');
+      }
+
       const response = await axios.post(
         `${API_URL}/transactions/deposits`,
-        { amount },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { amount, proofOfPayment },
+        {
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
-      commit('ADD_DEPOSIT', response.data);
-      return response.data;
+
+      if (response.data.success) {
+        commit('ADD_DEPOSIT', response.data.deposit);
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Erreur lors de la création du dépôt');
+      }
     } catch (error) {
-      commit('SET_ERROR', error.response?.data?.message || 'Erreur lors de la création du dépôt');
-      throw error;
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors de la création du dépôt';
+      commit('SET_ERROR', errorMessage);
+      throw new Error(errorMessage);
     } finally {
       commit('SET_LOADING', false);
     }
@@ -160,3 +182,5 @@ export default {
   actions,
   getters
 }; 
+ 
+ 

@@ -1,5 +1,14 @@
 <template>
   <div class="matches-container">
+    <!-- Notification d'erreur -->
+    <div v-if="error" class="error-notification">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+      <button class="close-btn" @click="error = null">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
     <div class="matches-header">
       <h1>Matches en direct</h1>
       <div class="matches-filters">
@@ -42,9 +51,9 @@
         <div v-for="match in liveMatches" :key="match._id" class="match-card">
           <div class="match-header">
             <div class="match-teams">
-              <span class="team">{{ match.team1 }}</span>
+              <span class="team">{{ match.teamA?.name }}</span>
               <span class="vs">VS</span>
-              <span class="team">{{ match.team2 }}</span>
+              <span class="team">{{ match.teamB?.name }}</span>
             </div>
             <div class="match-time">
               <i class="fas fa-clock"></i>
@@ -53,7 +62,7 @@
           </div>
           
           <div class="match-score" v-if="match.status === 'live'">
-            <span class="score">{{ match.score1 }} - {{ match.score2 }}</span>
+            <span class="score">{{ match.teamA?.score || 0 }} - {{ match.teamB?.score || 0 }}</span>
             <span class="status live">En direct</span>
           </div>
           
@@ -61,12 +70,12 @@
             <div class="odd-group">
               <button 
                 class="odd-btn" 
-                :class="{ selected: selectedBet?.matchId === match._id && selectedBet?.choice === 'team1' }"
-                @click="selectBet(match, 'team1')"
+                :class="{ selected: selectedBet?.matchId === match._id && selectedBet?.choice === 'teamA' }"
+                @click="selectBet(match, 'teamA')"
                 :disabled="!isAuthenticated || match.status !== 'live'"
               >
-                <span class="team-name">{{ match.team1 }}</span>
-                <span class="odd-value">{{ match.odds.team1 }}</span>
+                <span class="team-name">{{ match.teamA?.name }}</span>
+                <span class="odd-value">{{ match.odds?.teamA || 2.0 }}</span>
               </button>
               
               <button 
@@ -76,17 +85,17 @@
                 :disabled="!isAuthenticated || match.status !== 'live'"
               >
                 <span class="team-name">Match nul</span>
-                <span class="odd-value">{{ match.odds.draw }}</span>
+                <span class="odd-value">{{ match.odds?.draw || 3.0 }}</span>
               </button>
               
               <button 
                 class="odd-btn" 
-                :class="{ selected: selectedBet?.matchId === match._id && selectedBet?.choice === 'team2' }"
-                @click="selectBet(match, 'team2')"
+                :class="{ selected: selectedBet?.matchId === match._id && selectedBet?.choice === 'teamB' }"
+                @click="selectBet(match, 'teamB')"
                 :disabled="!isAuthenticated || match.status !== 'live'"
               >
-                <span class="team-name">{{ match.team2 }}</span>
-                <span class="odd-value">{{ match.odds.team2 }}</span>
+                <span class="team-name">{{ match.teamB?.name }}</span>
+                <span class="odd-value">{{ match.odds?.teamB || 2.0 }}</span>
               </button>
             </div>
           </div>
@@ -100,7 +109,11 @@
                 min="1" 
                 :max="userBalance"
                 class="amount-input"
+                :class="{ 'error': betAmount > userBalance }"
               />
+              <div v-if="betAmount > userBalance" class="error-message">
+                Solde KTAP insuffisant. Votre solde : {{ formatBalance(userBalance) }} KTAP
+              </div>
             </div>
             <div class="potential-winnings">
               <span>Gains potentiels:</span>
@@ -133,9 +146,9 @@
         <div v-for="match in upcomingMatches" :key="match._id" class="match-card upcoming">
           <div class="match-header">
             <div class="match-teams">
-              <span class="team">{{ match.team1 }}</span>
+              <span class="team">{{ match.teamA?.name }}</span>
               <span class="vs">VS</span>
-              <span class="team">{{ match.team2 }}</span>
+              <span class="team">{{ match.teamB?.name }}</span>
             </div>
             <div class="match-time">
               <i class="fas fa-calendar"></i>
@@ -146,18 +159,18 @@
           <div class="match-odds">
             <div class="odd-group">
               <div class="odd-display">
-                <span class="team-name">{{ match.team1 }}</span>
-                <span class="odd-value">{{ match.odds.team1 }}</span>
+                <span class="team-name">{{ match.teamA?.name }}</span>
+                <span class="odd-value">{{ match.odds?.teamA || 2.0 }}</span>
               </div>
               
               <div class="odd-display">
                 <span class="team-name">Match nul</span>
-                <span class="odd-value">{{ match.odds.draw }}</span>
+                <span class="odd-value">{{ match.odds?.draw || 3.0 }}</span>
               </div>
               
               <div class="odd-display">
-                <span class="team-name">{{ match.team2 }}</span>
-                <span class="odd-value">{{ match.odds.team2 }}</span>
+                <span class="team-name">{{ match.teamB?.name }}</span>
+                <span class="odd-value">{{ match.odds?.teamB || 2.0 }}</span>
               </div>
             </div>
           </div>
@@ -179,6 +192,7 @@ export default {
     const openLoginModal = inject('openLoginModal');
     
     const loading = ref(false);
+    const error = ref(null);
     const activeFilter = ref('all');
     const selectedBet = ref(null);
     const betAmount = ref(1);
@@ -249,9 +263,10 @@ export default {
       if (!canPlaceBet.value) return;
       
       try {
+        error.value = null;
         await store.dispatch('bets/placeBet', {
           matchId: match._id,
-          choice: selectedBet.value.choice,
+          betType: selectedBet.value.choice,
           amount: betAmount.value
         });
         
@@ -259,32 +274,24 @@ export default {
         betAmount.value = 1;
       } catch (error) {
         console.error('Erreur lors du placement du pari:', error);
+        error.value = error.response?.data?.message || 'Erreur lors du placement du pari. Veuillez réessayer.';
       }
     };
     
-    const fetchMatches = async () => {
+    onMounted(async () => {
+      loading.value = true;
       try {
-        loading.value = true;
         await store.dispatch('matches/fetchMatches');
       } catch (error) {
         console.error('Erreur lors du chargement des matches:', error);
       } finally {
         loading.value = false;
       }
-    };
-    
-    onMounted(() => {
-      fetchMatches();
-      // Rafraîchir les matches toutes les 30 secondes
-      const interval = setInterval(fetchMatches, 30000);
-      
-      return () => {
-        clearInterval(interval);
-      };
     });
     
     return {
       loading,
+      error,
       activeFilter,
       selectedBet,
       betAmount,
@@ -515,6 +522,16 @@ export default {
                 outline: none;
                 border-color: #4CAF50;
               }
+              
+              &.error {
+                border-color: #f44336;
+              }
+            }
+            
+            .error-message {
+              color: #f44336;
+              font-size: 0.8rem;
+              margin-top: 0.5rem;
             }
           }
           
@@ -557,5 +574,39 @@ export default {
       }
     }
   }
+
+  .error-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #f44336;
+    color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    
+    i {
+      font-size: 1.2rem;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0.25rem;
+      margin-left: 1rem;
+      
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
 }
 </style> 
+ 
+ 

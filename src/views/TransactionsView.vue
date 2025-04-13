@@ -169,21 +169,36 @@ export default {
       return statusMap[status] || status;
     };
 
-    const handleDeposit = async (amount) => {
+    const handleDeposit = async (depositData) => {
       try {
-        await store.dispatch('transactions/createDeposit', amount);
+        await store.dispatch('transactions/createDeposit', {
+          amount: depositData.amount,
+          proofOfPayment: depositData.proofOfPayment
+        });
         showDepositModal.value = false;
+        // Rafraîchir la liste des transactions
+        await Promise.all([
+          store.dispatch('transactions/fetchDeposits'),
+          store.dispatch('transactions/fetchWithdrawals')
+        ]);
       } catch (error) {
         console.error('Erreur lors du dépôt:', error);
+        // L'erreur sera affichée via le getter error du store
       }
     };
 
-    const handleWithdraw = async (amount) => {
+    const handleWithdraw = async (withdrawalData) => {
       try {
-        await store.dispatch('transactions/createWithdrawal', amount);
+        await store.dispatch('transactions/createWithdrawal', withdrawalData);
         showWithdrawModal.value = false;
+        // Rafraîchir la liste des transactions
+        await Promise.all([
+          store.dispatch('transactions/fetchDeposits'),
+          store.dispatch('transactions/fetchWithdrawals')
+        ]);
       } catch (error) {
         console.error('Erreur lors du retrait:', error);
+        // L'erreur sera affichée via le getter error du store
       }
     };
 
@@ -363,3 +378,5 @@ export default {
   }
 }
 </style> 
+ 
+ 

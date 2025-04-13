@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import matchRoutes from './routes/matches.js';
 import betRoutes from './routes/bets.js';
+import adminRoutes from './routes/admin.js';
+import transactionRoutes from './routes/transactions.js';
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/bets', betRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Socket.IO connection
 io.on('connection', (socket) => {

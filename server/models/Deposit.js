@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const depositSchema = new mongoose.Schema({
   user: {
@@ -27,4 +27,8 @@ const depositSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Deposit', depositSchema); 
+const Deposit = mongoose.model('Deposit', depositSchema);
+
+export default Deposit; 
+ 
+ 

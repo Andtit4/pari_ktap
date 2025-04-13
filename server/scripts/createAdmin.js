@@ -6,7 +6,7 @@ dotenv.config();
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/oddsx');
+    await mongoose.connect('mongodb+srv://andtit4:Xtprk2Fnocd4YOIi@cluster0.0o66gyz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
     console.log('Connecté à MongoDB');
 
     // Vérifier si l'admin existe déjà
@@ -37,3 +37,5 @@ const createAdmin = async () => {
 };
 
 createAdmin(); 
+ 
+ 

@@ -11,21 +11,18 @@ const pendingDepositSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  paymentMethod: {
-    type: String,
-    required: true,
-    enum: ['paypal', 'bank', 'credit_card', 'crypto']
-  },
   status: {
     type: String,
-    required: true,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
+  proofOfPayment: {
+    type: String,
+    required: true
+  },
   transactionId: {
     type: String,
-    required: true,
-    unique: true
+    sparse: true
   },
   createdAt: {
     type: Date,
@@ -37,6 +34,9 @@ const pendingDepositSchema = new mongoose.Schema({
   }
 });
 
+// Créer un index composé qui permet de traquer les transactionId uniques mais ignore les null
+pendingDepositSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
+
 // Middleware pour mettre à jour updatedAt
 pendingDepositSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
@@ -46,3 +46,5 @@ pendingDepositSchema.pre('save', function(next) {
 const PendingDeposit = mongoose.model('PendingDeposit', pendingDepositSchema);
 
 export default PendingDeposit; 
+ 
+ 

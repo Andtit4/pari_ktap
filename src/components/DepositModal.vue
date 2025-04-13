@@ -9,6 +9,11 @@
       </div>
 
       <div class="modal-body">
+        <!-- Message d'erreur -->
+        <div v-if="error" class="alert alert-danger">
+          {{ error }}
+        </div>
+
         <form @submit.prevent="handleSubmit">
           <div class="form-group">
             <label for="amount">Montant (KTAP)</label>
@@ -21,6 +26,7 @@
                 step="0.01"
                 required
                 placeholder="Entrez le montant"
+                :disabled="loading"
               />
               <span class="currency">KTAP</span>
             </div>
@@ -33,14 +39,27 @@
               v-model="reason"
               rows="3"
               placeholder="Entrez une raison pour ce dépôt"
+              :disabled="loading"
             ></textarea>
           </div>
 
+          <div class="form-group">
+            <label for="proofOfPayment">Preuve de paiement</label>
+            <input
+              id="proofOfPayment"
+              v-model="proofOfPayment"
+              type="text"
+              required
+              placeholder="Entrez l'URL ou l'ID de la preuve de paiement"
+              :disabled="loading"
+            />
+          </div>
+
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="$emit('close')">
+            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="loading">
               Annuler
             </button>
-            <button type="submit" class="btn-primary" :disabled="loading">
+            <button type="submit" class="btn-primary" :disabled="loading || !isValid">
               <i v-if="loading" class="fas fa-spinner fa-spin"></i>
               <span v-else>Confirmer le dépôt</span>
             </button>
@@ -52,7 +71,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 export default {
   name: 'DepositModal',
@@ -60,19 +79,33 @@ export default {
   setup(props, { emit }) {
     const amount = ref('');
     const reason = ref('');
+    const proofOfPayment = ref('');
     const loading = ref(false);
+    const error = ref('');
+
+    const isValid = computed(() => {
+      return amount.value && 
+             parseFloat(amount.value) > 0 && 
+             proofOfPayment.value.trim() !== '';
+    });
 
     const handleSubmit = async () => {
-      if (!amount.value || parseFloat(amount.value) <= 0) {
+      if (!isValid.value) {
+        error.value = 'Veuillez remplir tous les champs requis';
         return;
       }
 
       loading.value = true;
+      error.value = '';
+
       try {
         await emit('submit', {
           amount: parseFloat(amount.value),
-          reason: reason.value
+          reason: reason.value,
+          proofOfPayment: proofOfPayment.value
         });
+      } catch (err) {
+        error.value = err.message || 'Une erreur est survenue lors du dépôt';
       } finally {
         loading.value = false;
       }
@@ -81,7 +114,10 @@ export default {
     return {
       amount,
       reason,
+      proofOfPayment,
       loading,
+      error,
+      isValid,
       handleSubmit
     };
   }
@@ -239,4 +275,30 @@ export default {
     }
   }
 }
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+
+  &.alert-danger {
+    background-color: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+}
+
+input:disabled,
+textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled {
+  background-color: var(--primary-light);
+  cursor: not-allowed;
+}
 </style> 
+ 
+ 

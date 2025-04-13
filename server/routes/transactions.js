@@ -1,35 +1,64 @@
-const express = require('express');
+import express from 'express';
+import { auth } from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
+import Deposit from '../models/Deposit.js';
+import Withdrawal from '../models/Withdrawal.js';
+import User from '../models/User.js';
+import PendingDeposit from '../models/PendingDeposit.js';
+
 const router = express.Router();
-const auth = require('../middleware/auth');
-const Deposit = require('../models/Deposit');
-const Withdrawal = require('../models/Withdrawal');
-const User = require('../models/User');
 
 // Créer une demande de dépôt
 router.post('/deposits', auth, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, proofOfPayment } = req.body;
     
+    // Validation des données
     if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Montant invalide' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Le montant doit être supérieur à 0' 
+      });
     }
 
-    const deposit = new Deposit({
-      user: req.user.id,
-      amount
+    if (!proofOfPayment) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'La preuve de paiement est requise' 
+      });
+    }
+
+    // Créer le dépôt en attente
+    const deposit = new PendingDeposit({
+      user: req.user._id, // Utiliser _id au lieu de id
+      amount,
+      proofOfPayment,
+      status: 'pending'
     });
 
+    // Sauvegarder le dépôt
     await deposit.save();
-    res.status(201).json(deposit);
+
+    // Retourner la réponse
+    res.status(201).json({
+      success: true,
+      message: 'Dépôt en attente créé avec succès',
+      deposit
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('Erreur lors de la création du dépôt:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erreur lors de la création du dépôt',
+      error: error.message 
+    });
   }
 });
 
 // Obtenir l'historique des dépôts d'un utilisateur
 router.get('/deposits', auth, async (req, res) => {
   try {
-    const deposits = await Deposit.find({ user: req.user.id })
+    const deposits = await PendingDeposit.find({ user: req.user.id })
       .sort({ createdAt: -1 });
     res.json(deposits);
   } catch (error) {
@@ -75,12 +104,8 @@ router.get('/withdrawals', auth, async (req, res) => {
 });
 
 // Routes admin pour gérer les transactions
-router.get('/admin/deposits', auth, async (req, res) => {
+router.get('/admin/deposits', auth, admin, async (req, res) => {
   try {
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
-    }
-
     const deposits = await Deposit.find()
       .populate('user', 'username email')
       .populate('processedBy', 'username')
@@ -91,12 +116,8 @@ router.get('/admin/deposits', auth, async (req, res) => {
   }
 });
 
-router.get('/admin/withdrawals', auth, async (req, res) => {
+router.get('/admin/withdrawals', auth, admin, async (req, res) => {
   try {
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
-    }
-
     const withdrawals = await Withdrawal.find()
       .populate('user', 'username email')
       .populate('processedBy', 'username')
@@ -108,12 +129,8 @@ router.get('/admin/withdrawals', auth, async (req, res) => {
 });
 
 // Traiter un dépôt
-router.put('/admin/deposits/:id', auth, async (req, res) => {
+router.put('/admin/deposits/:id', auth, admin, async (req, res) => {
   try {
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
-    }
-
     const { status } = req.body;
     const deposit = await Deposit.findById(req.params.id);
 
@@ -143,12 +160,8 @@ router.put('/admin/deposits/:id', auth, async (req, res) => {
 });
 
 // Traiter un retrait
-router.put('/admin/withdrawals/:id', auth, async (req, res) => {
+router.put('/admin/withdrawals/:id', auth, admin, async (req, res) => {
   try {
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
-    }
-
     const { status, reason } = req.body;
     const withdrawal = await Withdrawal.findById(req.params.id);
 
@@ -181,4 +194,6 @@ router.put('/admin/withdrawals/:id', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
+ 
+ 

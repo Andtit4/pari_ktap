@@ -537,13 +537,23 @@
               <h3>{{ selectedMatch?.teamA?.name }} vs {{ selectedMatch?.teamB?.name }}</h3>
             </div>
             
-            <div class="form-group">
-              <label>Lien de streaming</label>
-              <input 
-                type="url" 
-                v-model="streamingUpdate.link" 
-                placeholder="https://..."
-              />
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Lien de streaming</label>
+              <div class="flex gap-2">
+                <input
+                  v-model="streamingUpdate.link"
+                  type="text"
+                  class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+                <button
+                  v-if="streamingUpdate.link"
+                  @click="openStreamingUrl"
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <i class="fas fa-play mr-2"></i>Play
+                </button>
+              </div>
             </div>
             
             <div class="form-actions">
@@ -563,7 +573,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -771,14 +781,10 @@ export default {
       
       try {
         loading.value = true;
-        await store.dispatch('matches/updateMatchAdmin', {
+        await store.dispatch('matches/updateMatchScore', {
           matchId: selectedMatch.value._id,
-          matchData: {
-            teamA: selectedMatch.value.team1,
-            teamB: selectedMatch.value.team2,
-            teamAScore: scoreUpdate.value.score1,
-            teamBScore: scoreUpdate.value.score2
-          }
+          teamAScore: scoreUpdate.value.score1,
+          teamBScore: scoreUpdate.value.score2
         });
         showUpdateScoreModal.value = false;
       } catch (error) {
@@ -859,7 +865,10 @@ export default {
     const approveTransaction = async (transaction) => {
       try {
         loading.value = true;
-        await store.dispatch('admin/approveTransaction', transaction._id);
+        await store.dispatch('admin/approveTransaction', {
+          id: transaction._id,
+          type: transaction.type
+        });
       } catch (error) {
         console.error('Erreur lors de l\'approbation de la transaction:', error);
       } finally {
@@ -870,7 +879,11 @@ export default {
     const rejectTransaction = async (transaction) => {
       try {
         loading.value = true;
-        await store.dispatch('admin/rejectTransaction', transaction._id);
+        await store.dispatch('admin/rejectTransaction', {
+          id: transaction._id,
+          type: transaction.type,
+          reason: 'Rejeté par l\'administrateur'
+        });
       } catch (error) {
         console.error('Erreur lors du rejet de la transaction:', error);
       } finally {
@@ -910,12 +923,17 @@ export default {
       }
     };
     
+    const openStreamingUrl = () => {
+      if (streamingUpdate.value.link) {
+        window.open(streamingUpdate.value.link, '_blank');
+      }
+    };
+    
     // Cycle de vie
     onMounted(async () => {
       try {
         loading.value = true;
         await Promise.all([
-          store.dispatch('matches/fetchAdminMatches'),
           store.dispatch('admin/fetchUsers'),
           store.dispatch('admin/fetchTransactions')
         ]);
@@ -923,6 +941,26 @@ export default {
         console.error('Erreur lors du chargement des données:', error);
       } finally {
         loading.value = false;
+      }
+    });
+
+    // Rafraîchir les données périodiquement
+    let refreshInterval;
+    onMounted(() => {
+      refreshInterval = setInterval(async () => {
+        if (activeTab.value === 'matches') {
+          await store.dispatch('matches/fetchAdminMatches');
+        } else if (activeTab.value === 'users') {
+          await store.dispatch('admin/fetchUsers');
+        } else if (activeTab.value === 'transactions') {
+          await store.dispatch('admin/fetchTransactions');
+        }
+      }, 30000); // Rafraîchir toutes les 30 secondes
+    });
+
+    onUnmounted(() => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
       }
     });
     
@@ -965,7 +1003,8 @@ export default {
       rejectTransaction,
       viewTransaction,
       updateStreaming,
-      submitStreamingUpdate
+      submitStreamingUpdate,
+      openStreamingUrl
     };
   }
 };
@@ -1533,3 +1572,5 @@ export default {
   }
 }
 </style> 
+ 
+ 

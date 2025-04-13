@@ -196,4 +196,29 @@ router.delete('/admin/matches/:id', async (req, res) => {
   }
 });
 
+// Démarrer un match (admin)
+router.patch('/admin/matches/:id/start', auth, admin, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ error: 'Match non trouvé.' });
+    }
+    
+    if (match.status !== 'scheduled') {
+      return res.status(400).json({ error: 'Le match doit être planifié pour être démarré.' });
+    }
+    
+    match.status = 'live';
+    match.startTime = new Date();
+    
+    await match.save();
+    res.json(match);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router; 
+ 
+ 
