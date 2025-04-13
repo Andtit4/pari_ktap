@@ -10,7 +10,7 @@ module.exports = {
         PORT: 9000
       },
       watch: false,
-      ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts'],
+      ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts', '*.js', '*.json'],
       error_file: 'logs/frontend-err.log',
       out_file: 'logs/frontend-out.log',
       time: true
@@ -26,7 +26,7 @@ module.exports = {
         CLIENT_URL: 'http://localhost:9000'
       },
       watch: false,
-      ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts'],
+      ignore_watch: ['node_modules', 'logs', '*.config.*', '*.ts', '*.js', '*.json'],
       error_file: 'logs/backend-err.log',
       out_file: 'logs/backend-out.log',
       time: true

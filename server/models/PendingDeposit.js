@@ -22,6 +22,7 @@ const pendingDepositSchema = new mongoose.Schema({
   },
   transactionId: {
     type: String,
+    unique: true,
     sparse: true
   },
   createdAt: {
@@ -33,9 +34,6 @@ const pendingDepositSchema = new mongoose.Schema({
     default: Date.now
   }
 });
-
-// Créer un index composé qui permet de traquer les transactionId uniques mais ignore les null
-pendingDepositSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
 // Middleware pour mettre à jour updatedAt
 pendingDepositSchema.pre('save', function(next) {
